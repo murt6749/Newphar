@@ -1306,43 +1306,38 @@
                         </div>
 
                         <!-- AI Chat Assistant -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>AI Study Assistant</h3>
-                                <div class="card-actions">
-                                    <button class="btn btn-sm btn-secondary" id="clear-chat-btn">
-                                        <i class="fas fa-trash"></i> Clear
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="card-body" style="padding: 0;">
-                                <div class="ai-chat-container">
-                                    <div class="chat-header">
-                                        <i class="fas fa-robot"></i>
-                                        <h3>PharmaAI Assistant</h3>
-                                    </div>
-                                    <div class="chat-messages" id="chat-messages">
-                                        <div class="message">
-                                            <div class="message-ai">
-                                                Hello! I'm your PharmaAI assistant. How can I help with your studies today?
-                                                <div class="message-time">Just now</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="chat-input">
-                                        <input type="text" placeholder="Ask me anything about pharmacology..." id="chat-input">
-                                        <button id="send-message-btn">
-                                            <i class="fas fa-paper-plane"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+<div class="card">
+    <div class="card-header">
+        <h3>AI Study Assistant</h3>
+        <div class="card-actions">
+            <button class="btn btn-sm btn-secondary" id="clear-chat-btn">
+                <i class="fas fa-trash"></i> Clear
+            </button>
+        </div>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        <div class="ai-chat-container">
+            <div class="chat-header">
+                <i class="fas fa-robot"></i>
+                <h3>PharmaAI Assistant</h3>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="message">
+                    <div class="message-ai">
+                        Hello! I'm your PharmaAI assistant. How can I help with your studies today?
+                        <div class="message-time">Just now</div>
                     </div>
                 </div>
             </div>
-        </main>
+            <div class="chat-input">
+                <input type="text" placeholder="Ask me anything about pharmacology..." id="chat-input">
+                <button id="send-message-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
     </div>
+</div>
 
     <!-- Create Plan Modal -->
     <div class="modal" id="create-plan-modal">
@@ -1988,6 +1983,97 @@
                 window.location.href = 'login.html';
             }
         });
+        // Configuration - REPLACE WITH YOUR RENDER URL
+    const API_BASE_URL = "https://newphar.onrender.com";
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-message-btn');
+    const clearBtn = document.getElementById('clear-chat-btn');
+
+    // Add message to chat
+    function addMessage(role, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message';
+        messageDiv.innerHTML = `
+            <div class="message-${role}">
+                ${content}
+                <div class="message-time">${new Date().toLocaleTimeString()}</div>
+            </div>
+        `;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Send message to your Render API
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+        
+        // Add user message to chat
+        addMessage('user', message);
+        chatInput.value = '';
+        
+        // Show "AI is typing" indicator
+        const typingIndicator = document.createElement('div');
+        typingIndicator.className = 'message';
+        typingIndicator.innerHTML = `
+            <div class="message-ai">
+                <i class="fas fa-ellipsis-h"></i> Thinking...
+                <div class="message-time">AI is typing</div>
+            </div>
+        `;
+        chatMessages.appendChild(typingIndicator);
+        
+        try {
+            // Call your Render backend API
+            const response = await fetch(`${API_BASE_URL}/ai/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                },
+                body: JSON.stringify({
+                    message: message,
+                    context: "pharmacology study assistant"
+                })
+            });
+            
+            // Remove typing indicator
+            chatMessages.removeChild(typingIndicator);
+            
+            if (response.ok) {
+                const data = await response.json();
+                addMessage('ai', data.response);
+            } else {
+                addMessage('ai', "Sorry, I couldn't process your request. Please try again.");
+            }
+        } catch (error) {
+            chatMessages.removeChild(typingIndicator);
+            addMessage('ai', "Connection error. Please check your internet.");
+            console.error('Chat error:', error);
+        }
+    }
+
+    // Clear chat history
+    function clearChat() {
+        chatMessages.innerHTML = `
+            <div class="message">
+                <div class="message-ai">
+                    Chat cleared. How can I help with your pharmacology studies today?
+                    <div class="message-time">Just now</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Event listeners
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+    clearBtn.addEventListener('click', clearChat);
+</script>
+        
     </script>
 </body>
 </html>
