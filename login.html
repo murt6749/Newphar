@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Student Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #166088;
+            --accent: #4fc3f7;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --pharma-green: #4CAF50;
+            --pharma-blue: #2196F3;
+            --pill-shape: 20px 5px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .molecule {
+            position: absolute;
+            opacity: 0.1;
+            z-index: -1;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        .molecule:nth-child(1) {
+            top: 10%;
+            left: 5%;
+            width: 150px;
+            animation-delay: 0s;
+        }
+
+        .molecule:nth-child(2) {
+            bottom: 15%;
+            right: 8%;
+            width: 200px;
+            animation-delay: 2s;
+        }
+
+        .molecule:nth-child(3) {
+            top: 30%;
+            right: 15%;
+            width: 100px;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(5deg);
+            }
+        }
+
+        .container {
+            display: flex;
+            width: 900px;
+            max-width: 90%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+            transition: all 0.5s ease;
+        }
+
+        .container:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .form-container {
+            flex: 1;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: var(--pharma-blue);
+            opacity: 0.1;
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .form-container::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: -30px;
+            width: 150px;
+            height: 150px;
+            background: var(--pharma-green);
+            opacity: 0.1;
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            color: var(--secondary);
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            margin-right: 15px;
+            color: var(--pharma-blue);
+        }
+
+        .logo h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .logo span {
+            color: var(--pharma-green);
+        }
+
+        .form-toggle {
+            display: flex;
+            margin-bottom: 30px;
+            background: #f1f1f1;
+            border-radius: var(--pill-shape);
+            position: relative;
+        }
+
+        .form-toggle button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .form-toggle .slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--pharma-blue), var(--pharma-green));
+            border-radius: var(--pill-shape);
+            transition: all 0.3s ease;
+        }
+
+        .form-toggle.login-active .slider {
+            transform: translateX(0);
+        }
+
+        .form-toggle.signup-active .slider {
+            transform: translateX(100%);
+        }
+
+        .form-toggle button.active {
+            color: white;
+        }
+
+        .form {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .form.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form h2 {
+            margin-bottom: 20px;
+            color: var(--secondary);
+            font-size: 1.8rem;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--pharma-blue);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--pill-shape);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: var(--pharma-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: var(--pill-shape);
+            background: linear-gradient(90deg, var(--pharma-blue), var(--pharma-green));
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+        }
+
+        .btn-google {
+            background: white;
+            color: var(--dark);
+            border: 2px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-google i {
+            margin-right: 10px;
+            color: #DB4437;
+            font-size: 1.2rem;
+        }
+
+        .btn-google:hover {
+            background: #f8f9fa;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #999;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider span {
+            padding: 0 15px;
+        }
+
+        .graphic-side {
+            flex: 1;
+            background: linear-gradient(135deg, var(--pharma-blue), var(--pharma-green));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .graphic-side::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .graphic-side::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: -30px;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .pill-animation {
+            width: 150px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--pill-shape);
+            margin-bottom: 40px;
+            position: relative;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+        }
+
+        .graphic-side h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 700;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .graphic-side p {
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .test-tube {
+            position: absolute;
+            width: 80px;
+            height: 120px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-bottom: none;
+            border-radius: 20px 20px 0 0;
+            bottom: 40px;
+            right: 40px;
+            animation: bubble 4s infinite ease-in-out;
+        }
+
+        .test-tube::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70%;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 0 0 17px 17px;
+            animation: liquid 6s infinite ease-in-out;
+        }
+
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: bubble 3s infinite ease-in-out;
+        }
+
+        @keyframes bubble {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        @keyframes liquid {
+            0%, 100% {
+                height: 70%;
+            }
+            50% {
+                height: 60%;
+            }
+        }
+
+        .floating-pills {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .floating-pills span {
+            position: absolute;
+            display: block;
+            width: 30px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: var(--pill-shape);
+            animation: float 10s infinite linear;
+        }
+
+        .floating-pills span:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-pills span:nth-child(2) {
+            top: 60%;
+            left: 80%;
+            animation-delay: 2s;
+            width: 40px;
+        }
+
+        .floating-pills span:nth-child(3) {
+            top: 40%;
+            left: 30%;
+            animation-delay: 4s;
+            width: 25px;
+        }
+
+        .floating-pills span:nth-child(4) {
+            top: 70%;
+            left: 40%;
+            animation-delay: 6s;
+        }
+
+        .floating-pills span:nth-child(5) {
+            top: 30%;
+            left: 70%;
+            animation-delay: 8s;
+            width: 35px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .graphic-side {
+                display: none;
+            }
+            
+            .form-container {
+                padding: 30px;
+            }
+        }
+
+        /* Error message styling */
+        .error-message {
+            color: #f44336;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* Success message styling */
+        .success-message {
+            color: var(--pharma-green);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating molecules in background -->
+    <svg class="molecule" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="40" stroke="#4a6fa5" stroke-width="2" fill="none"/>
+        <circle cx="30" cy="30" r="8" fill="#4a6fa5"/>
+        <circle cx="70" cy="30" r="8" fill="#4a6fa5"/>
+        <circle cx="30" cy="70" r="8" fill="#4a6fa5"/>
+        <circle cx="70" cy="70" r="8" fill="#4a6fa5"/>
+        <line x1="38" y1="30" x2="62" y2="30" stroke="#4a6fa5" stroke-width="2"/>
+        <line x1="30" y1="38" x2="30" y2="62" stroke="#4a6fa5" stroke-width="2"/>
+        <line x1="38" y1="70" x2="62" y2="70" stroke="#4a6fa5" stroke-width="2"/>
+        <line x1="70" y1="38" x2="70" y2="62" stroke="#4a6fa5" stroke-width="2"/>
+    </svg>
+
+    <svg class="molecule" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="8" fill="#166088"/>
+        <circle cx="20" cy="50" r="6" fill="#166088"/>
+        <circle cx="80" cy="50" r="6" fill="#166088"/>
+        <circle cx="50" cy="20" r="6" fill="#166088"/>
+        <circle cx="50" cy="80" r="6" fill="#166088"/>
+        <line x1="28" y1="50" x2="72" y2="50" stroke="#166088" stroke-width="2"/>
+        <line x1="50" y1="28" x2="50" y2="72" stroke="#166088" stroke-width="2"/>
+    </svg>
+
+    <svg class="molecule" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="6" fill="#4fc3f7"/>
+        <circle cx="30" cy="30" r="5" fill="#4fc3f7"/>
+        <circle cx="70" cy="30" r="5" fill="#4fc3f7"/>
+        <circle cx="30" cy="70" r="5" fill="#4fc3f7"/>
+        <circle cx="70" cy="70" r="5" fill="#4fc3f7"/>
+        <line x1="36" y1="30" x2="64" y2="30" stroke="#4fc3f7" stroke-width="2"/>
+        <line x1="30" y1="36" x2="30" y2="64" stroke="#4fc3f7" stroke-width="2"/>
+        <line x1="36" y1="70" x2="64" y2="70" stroke="#4fc3f7" stroke-width="2"/>
+        <line x1="70" y1="36" x2="70" y2="64" stroke="#4fc3f7" stroke-width="2"/>
+    </svg>
+
+    <div class="container">
+        <div class="form-container">
+            <div class="logo">
+                <i class="fas fa-pills"></i>
+                <h1>Pharma<span>Study</span></h1>
+            </div>
+
+            <div class="form-toggle login-active">
+                <div class="slider"></div>
+                <button id="login-toggle" class="active">Login</button>
+                <button id="signup-toggle">Sign Up</button>
+            </div>
+
+            <form id="login-form" class="form active">
+                <h2>Welcome Back!</h2>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="login-email" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="Password" required>
+                </div>
+                <div id="login-error" class="error-message"></div>
+                <button type="submit" class="btn">Login</button>
+                
+                <div class="divider"><span>OR</span></div>
+                
+                <button type="button" id="google-login" class="btn btn-google">
+                    <i class="fab fa-google"></i> Continue with Google
+                </button>
+            </form>
+
+            <form id="signup-form" class="form">
+                <h2>Create Account</h2>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="signup-name" placeholder="Full Name" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="signup-email" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="signup-password" placeholder="Password" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="signup-confirm-password" placeholder="Confirm Password" required>
+                </div>
+                <div id="signup-error" class="error-message"></div>
+                <div id="signup-success" class="success-message"></div>
+                <button type="submit" class="btn">Sign Up</button>
+                
+                <div class="divider"><span>OR</span></div>
+                
+                <button type="button" id="google-signup" class="btn btn-google">
+                    <i class="fab fa-google"></i> Continue with Google
+                </button>
+            </form>
+        </div>
+
+        <div class="graphic-side">
+            <div class="pill-animation"></div>
+            <h2>Pharma Student Portal</h2>
+            <p>Access exclusive study materials, quizzes, and resources tailored for pharmacy students.</p>
+            
+            <div class="features">
+                <div class="feature">Drug Databases</div>
+                <div class="feature">Interactive Quizzes</div>
+                <div class="feature">Study Guides</div>
+                <div class="feature">Research Papers</div>
+            </div>
+            
+            <div class="test-tube"></div>
+            
+            <div class="floating-pills">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            GoogleAuthProvider, 
+            signInWithPopup 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQyNVWh1BtCkXlBfuS7jHAa36FTklZayo",
+            authDomain: "pharma-quiz-b5a07.firebaseapp.com",
+            projectId: "pharma-quiz-b5a07",
+            storageBucket: "pharma-quiz-b5a07.appspot.com",
+            messagingSenderId: "161067776789",
+            appId: "1:161067776789:web:88b8a61145dc5f5c31471c",
+            measurementId: "G-3QRQE9HQFB"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const analytics = getAnalytics(app);
+        const provider = new GoogleAuthProvider();
+
+        // DOM elements
+        const loginToggle = document.getElementById('login-toggle');
+        const signupToggle = document.getElementById('signup-toggle');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const formToggle = document.querySelector('.form-toggle');
+        const googleLogin = document.getElementById('google-login');
+        const googleSignup = document.getElementById('google-signup');
+
+        // Toggle between login and signup forms
+        loginToggle.addEventListener('click', () => {
+            formToggle.classList.remove('signup-active');
+            formToggle.classList.add('login-active');
+            loginForm.classList.add('active');
+            signupForm.classList.remove('active');
+        });
+
+        signupToggle.addEventListener('click', () => {
+            formToggle.classList.remove('login-active');
+            formToggle.classList.add('signup-active');
+            loginForm.classList.remove('active');
+            signupForm.classList.add('active');
+        });
+
+        // Handle login with email/password
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorElement = document.getElementById('login-error');
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in 
+                    const user = userCredential.user;
+                    console.log('User logged in:', user);
+                    // Redirect to dashboard or home page
+                    window.location.href = 'dashboard.html';
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    errorElement.textContent = errorMessage;
+                    errorElement.style.display = 'block';
+                    console.error('Login error:', errorCode, errorMessage);
+                });
+        });
+
+        // Handle signup with email/password
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            const errorElement = document.getElementById('signup-error');
+            const successElement = document.getElementById('signup-success');
+
+            // Reset messages
+            errorElement.style.display = 'none';
+            successElement.style.display = 'none';
+
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                errorElement.textContent = 'Passwords do not match!';
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed up 
+                    const user = userCredential.user;
+                    console.log('User created:', user);
+                    
+                    // Show success message
+                    successElement.textContent = 'Account created successfully! Redirecting...';
+                    successElement.style.display = 'block';
+                    
+                    // Optionally redirect after a delay
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    errorElement.textContent = errorMessage;
+                    errorElement.style.display = 'block';
+                    console.error('Signup error:', errorCode, errorMessage);
+                });
+        });
+
+        // Handle Google login/signup
+        function handleGoogleAuth() {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    // This gives you a Google Access Token. You can use it to access the Google API.
+                    const credential = GoogleAuthProvider.credentialFromResult(result);
+                    const token = credential.accessToken;
+                    
+                    // The signed-in user info.
+                    const user = result.user;
+                    console.log('Google auth success:', user);
+                    
+                    // Redirect to dashboard or home page
+                    window.location.href = 'dashboard.html';
+                })
+                .catch((error) => {
+                    // Handle Errors here.
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    
+                    // The email of the user's account used.
+                    const email = error.customData.email;
+                    
+                    // The AuthCredential type that was used.
+                    const credential = GoogleAuthProvider.credentialFromError(error);
+                    
+                    console.error('Google auth error:', errorCode, errorMessage);
+                    
+                    // Show error to user
+                    const errorElement = formToggle.classList.contains('login-active') 
+                        ? document.getElementById('login-error')
+                        : document.getElementById('signup-error');
+                    
+                    errorElement.textContent = errorMessage;
+                    errorElement.style.display = 'block';
+                });
+        }
+
+        googleLogin.addEventListener('click', handleGoogleAuth);
+        googleSignup.addEventListener('click', handleGoogleAuth);
+    </script>
+</body>
+</html>
