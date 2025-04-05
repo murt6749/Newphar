@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Pharma Study Planner</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         :root {
             --primary: #4361ee;
+            --primary-light: #e0e7ff;
             --secondary: #3a0ca3;
             --accent: #4cc9f0;
             --success: #4caf50;
@@ -17,91 +19,407 @@
             --danger: #f44336;
             --light: #f8f9fa;
             --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
             --pill-radius: 20px 5px;
             --transition: all 0.3s ease;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+            --sidebar-width: 280px;
+            --navbar-height: 70px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
+            background-color: #f5f7ff;
             color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Layout Structure */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            box-shadow: var(--shadow-md);
+            position: fixed;
+            height: 100vh;
+            padding: 20px 0;
+            z-index: 100;
+            transition: var(--transition);
+            transform: translateX(0);
+        }
+
+        .sidebar-collapsed {
+            transform: translateX(calc(-1 * var(--sidebar-width) + 60px));
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--light-gray);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+            color: var(--secondary);
+        }
+
+        .sidebar-header h2 i {
+            color: var(--primary);
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--gray);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+
+        .nav-link i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 20px;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .toggle-sidebar {
+            position: absolute;
+            right: -15px;
+            top: 20px;
+            background: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: var(--transition);
+            padding-top: var(--navbar-height);
+        }
+
+        .main-content-expanded {
+            margin-left: 60px;
         }
 
         /* Navbar */
         .navbar {
             background: white;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 15px 30px;
+            box-shadow: var(--shadow-sm);
+            padding: 0 30px;
+            height: var(--navbar-height);
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
+            width: calc(100% - var(--sidebar-width));
+            left: var(--sidebar-width);
+            z-index: 90;
+            transition: var(--transition);
         }
 
-        .logo {
+        .navbar-expanded {
+            width: calc(100% - 60px);
+            left: 60px;
+        }
+
+        .search-bar {
+            position: relative;
+            width: 400px;
+            max-width: 50%;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid var(--light-gray);
+            border-radius: 30px;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-profile {
             display: flex;
             align-items: center;
             gap: 10px;
+            cursor: pointer;
+            position: relative;
         }
 
-        .logo i {
-            font-size: 1.8rem;
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .profile-name {
+            font-weight: 500;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            width: 200px;
+            padding: 10px 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            z-index: 100;
+        }
+
+        .user-profile:hover .profile-dropdown {
+            opacity: 1;
+            visibility: visible;
+            top: 45px;
+        }
+
+        .dropdown-item {
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .dropdown-item:hover {
+            background: var(--light);
             color: var(--primary);
         }
 
-        .logo h1 {
-            font-weight: 700;
-            font-size: 1.5rem;
+        .dropdown-item i {
+            width: 20px;
         }
 
-        .logo span {
-            color: var(--secondary);
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-top: 80px;
+        /* Content Area */
+        .content-wrapper {
             padding: 30px;
-            min-height: calc(100vh - 80px);
         }
 
-        /* Planner Header */
-        .planner-header {
+        .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
         }
 
-        .planner-header h2 {
+        .page-title h1 {
             font-size: 1.8rem;
             color: var(--secondary);
         }
 
-        .planner-header h2 span {
-            color: var(--primary);
+        .page-title p {
+            color: var(--gray);
+            font-size: 0.9rem;
         }
 
-        /* AI Upload Section */
-        .ai-upload {
+        .action-buttons .btn {
+            margin-left: 10px;
+        }
+
+        /* Cards */
+        .card {
             background: white;
             border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--shadow-sm);
             margin-bottom: 30px;
+            transition: var(--transition);
         }
 
-        .ai-upload h3 {
-            margin-bottom: 15px;
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            font-size: 1.2rem;
             color: var(--secondary);
         }
 
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .btn i {
+            font-size: 0.9rem;
+        }
+
+        .btn-sm {
+            padding: 8px 15px;
+            font-size: 0.8rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-outline-primary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: #d1d7e0;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #3d8b40;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        /* Upload Area */
         .upload-area {
             border: 2px dashed #ccc;
             border-radius: 10px;
@@ -109,10 +427,12 @@
             text-align: center;
             cursor: pointer;
             transition: var(--transition);
+            background: white;
         }
 
         .upload-area:hover {
             border-color: var(--primary);
+            background: var(--primary-light);
         }
 
         .upload-area i {
@@ -122,100 +442,374 @@
         }
 
         .upload-area p {
-            color: #666;
+            color: var(--gray);
+            margin-bottom: 15px;
         }
 
-        /* Calendar & Task List */
-        .planner-container {
+        .file-input {
+            display: none;
+        }
+
+        /* Planner Layout */
+        .planner-grid {
             display: grid;
             grid-template-columns: 1fr 350px;
             gap: 30px;
         }
 
         @media (max-width: 1200px) {
-            .planner-container {
+            .planner-grid {
                 grid-template-columns: 1fr;
             }
         }
 
         /* FullCalendar Custom Styling */
+        .fc {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
         .fc .fc-button {
             background: var(--primary);
             border: none;
-            border-radius: var(--pill-radius);
+            border-radius: 8px !important;
+            padding: 8px 15px;
+            text-transform: capitalize;
+            font-weight: 500;
         }
 
         .fc .fc-button:hover {
             background: var(--secondary);
         }
 
-        /* Task List */
-        .task-list {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        .fc .fc-button-primary:not(:disabled).fc-button-active {
+            background: var(--secondary);
         }
 
-        .task-list h3 {
-            margin-bottom: 20px;
-            color: var(--secondary);
+        .fc-event {
+            background: var(--primary);
+            border: none;
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 0.85rem;
+        }
+
+        .fc-event:hover {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Task List */
+        .task-list {
+            max-height: 500px;
+            overflow-y: auto;
         }
 
         .task-item {
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 10px;
-            background: rgba(67, 97, 238, 0.05);
+            background: white;
+            box-shadow: var(--shadow-sm);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            transition: var(--transition);
+        }
+
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .task-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        .task-priority {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .priority-high {
+            background: #ffebee;
+            color: var(--danger);
+        }
+
+        .priority-medium {
+            background: #fff8e1;
+            color: #ff8f00;
+        }
+
+        .priority-low {
+            background: #e8f5e9;
+            color: var(--success);
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .task-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            transition: var(--transition);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-btn:hover {
+            background: var(--light-gray);
+            color: var(--primary);
         }
 
         .task-item.completed {
             opacity: 0.7;
+        }
+
+        .task-item.completed .task-title {
             text-decoration: line-through;
+            color: var(--gray);
         }
 
-        /* Stats Card */
-        .stats-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            margin-top: 30px;
-        }
-
-        .stats-card h3 {
-            margin-bottom: 15px;
-            color: var(--secondary);
-        }
-
+        /* Progress Stats */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
         }
 
-        .stat-item {
-            text-align: center;
-            padding: 15px;
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: white;
             border-radius: 10px;
-            background: rgba(67, 97, 238, 0.05);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.2rem;
+        }
+
+        .stat-icon.primary {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .stat-icon.success {
+            background: #e8f5e9;
+            color: var(--success);
+        }
+
+        .stat-icon.warning {
+            background: #fff8e1;
+            color: var(--warning);
+        }
+
+        .stat-icon.danger {
+            background: #ffebee;
+            color: var(--danger);
         }
 
         .stat-value {
             font-size: 1.5rem;
             font-weight: 700;
-            color: var(--primary);
+            margin-bottom: 5px;
         }
 
         .stat-label {
             font-size: 0.9rem;
-            color: #666;
+            color: var(--gray);
         }
 
-        /* Modal for AI Plan Review */
+        /* AI Chat Interface */
+        .ai-chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-header h3 {
+            font-weight: 500;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f9f9ff;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-user {
+            align-self: flex-end;
+            background: var(--primary);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 15px 15px 0 15px;
+            max-width: 80%;
+        }
+
+        .message-ai {
+            align-self: flex-start;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 15px 15px 15px 0;
+            box-shadow: var(--shadow-sm);
+            max-width: 80%;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid var(--light-gray);
+            background: white;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 30px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .chat-input input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .chat-input button {
+            margin-left: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chat-input button:hover {
+            background: var(--secondary);
+        }
+
+        /* Custom Plan Creator */
+        .plan-creator {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .select2-container .select2-selection--single {
+            height: 42px;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 42px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 42px;
+        }
+
+        /* Modal Styles */
         .modal {
             position: fixed;
             top: 0;
@@ -241,9 +835,10 @@
             background: white;
             border-radius: 15px;
             width: 90%;
-            max-width: 600px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
             transform: translateY(-20px);
             transition: var(--transition);
         }
@@ -253,14 +848,20 @@
         }
 
         .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--light-gray);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
         }
 
         .modal-header h3 {
             color: var(--secondary);
+            font-size: 1.3rem;
         }
 
         .modal-close {
@@ -268,127 +869,725 @@
             border: none;
             font-size: 1.5rem;
             cursor: pointer;
-            color: #999;
+            color: var(--gray);
+            transition: var(--transition);
         }
 
         .modal-close:hover {
             color: var(--danger);
         }
 
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* AI Plan Review */
+        .ai-plan-preview {
+            background: #f9f9ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .plan-section {
+            margin-bottom: 20px;
+        }
+
+        .plan-section h4 {
+            margin-bottom: 10px;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .plan-section h4 i {
+            color: var(--primary);
+        }
+
+        .plan-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .plan-item:hover {
+            background: var(--primary-light);
+        }
+
+        .plan-item-checkbox {
+            margin-right: 10px;
+        }
+
+        .plan-item-details {
+            flex: 1;
+        }
+
+        .plan-item-title {
+            font-weight: 500;
+        }
+
+        .plan-item-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        .plan-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
         /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar-collapsed {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .navbar {
+                width: 100%;
+                left: 0;
+            }
+        }
+
         @media (max-width: 768px) {
-            .planner-header {
+            .content-wrapper {
+                padding: 20px;
+            }
+
+            .page-header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 15px;
             }
 
-            .main-content {
-                padding: 20px;
+            .action-buttons {
+                width: 100%;
+                display: flex;
+                gap: 10px;
             }
+
+            .action-buttons .btn {
+                flex: 1;
+                margin-left: 0;
+            }
+
+            .search-bar {
+                max-width: 100%;
+            }
+        }
+
+        /* Utility Classes */
+        .d-flex {
+            display: flex;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .gap-10 {
+            gap: 10px;
+        }
+
+        .gap-20 {
+            gap: 20px;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: var(--gray);
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="logo">
-            <i class="fas fa-pills"></i>
-            <h1>Pharma<span>AI</span></h1>
-        </div>
-        <div class="user-profile">
-            <div class="profile-pic" id="user-initials">JD</div>
-            <div class="dropdown-menu">
-                <a href="#"><i class="fas fa-user"></i> Profile</a>
-                <a href="#"><i class="fas fa-cog"></i> Settings</a>
-                <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="toggle-sidebar" id="toggle-sidebar">
+                <i class="fas fa-chevron-left"></i>
             </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Planner Header -->
-        <div class="planner-header">
-            <h2><span id="user-name">John's</span> Study Planner</h2>
-            <button class="btn btn-primary" id="ai-generate-btn">
-                <i class="fas fa-robot"></i> Generate AI Plan
-            </button>
-        </div>
-
-        <!-- AI Upload Section -->
-        <div class="ai-upload">
-            <h3>Upload Study Materials</h3>
-            <div class="upload-area" id="upload-area">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <p>Drag & drop PPT, PDF, or text files here</p>
-                <input type="file" id="file-input" accept=".pdf,.ppt,.pptx,.txt" style="display: none;">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-pills"></i> Pharma<span>AI</span></h2>
             </div>
-        </div>
-
-        <!-- Planner Layout -->
-        <div class="planner-container">
-            <!-- Calendar -->
-            <div class="calendar-container">
-                <div id="calendar"></div>
-            </div>
-
-            <!-- Task List -->
-            <div class="task-list">
-                <h3>Today's Tasks</h3>
-                <div id="today-tasks">
-                    <!-- Dynamically loaded tasks -->
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span class="nav-text">Study Planner</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-book"></i>
+                        <span class="nav-text">Study Materials</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span class="nav-text">Progress Analytics</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-flask"></i>
+                        <span class="nav-text">Pharma Resources</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-robot"></i>
+                        <span class="nav-text">AI Assistant</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span class="nav-text">Settings</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="upgrade-card">
+                    <h4>Upgrade to Pro</h4>
+                    <p>Unlock advanced AI features</p>
+                    <button class="btn btn-primary btn-sm" style="width: 100%; margin-top: 10px;">
+                        Upgrade Now
+                    </button>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <!-- Stats Card -->
-        <div class="stats-card">
-            <h3>Study Progress</h3>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-value" id="completed-tasks">12</div>
-                    <div class="stat-label">Completed</div>
+        <!-- Main Content -->
+        <main class="main-content" id="main-content">
+            <!-- Navbar -->
+            <nav class="navbar" id="navbar">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search for topics, drugs, or resources...">
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="pending-tasks">5</div>
-                    <div class="stat-label">Pending</div>
+                <div class="user-menu">
+                    <div class="notification-bell">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="profile-pic" id="user-initials">JD</div>
+                        <span class="profile-name">John Doe</span>
+                        <div class="profile-dropdown">
+                            <a href="#" class="dropdown-item">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <i class="fas fa-question-circle"></i> Help
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item" id="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="study-hours">28</div>
-                    <div class="stat-label">Hours</div>
+            </nav>
+
+            <!-- Content Wrapper -->
+            <div class="content-wrapper">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>AI-Powered Study Planner</h1>
+                        <p>Personalized study plan based on your goals and materials</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-outline-primary" id="create-plan-btn">
+                            <i class="fas fa-plus"></i> Create Plan
+                        </button>
+                        <button class="btn btn-primary" id="ai-generate-btn">
+                            <i class="fas fa-robot"></i> AI Generate
+                        </button>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="streak-days">7</div>
-                    <div class="stat-label">Day Streak</div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid mb-20">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-value" id="completed-tasks">24</div>
+                        <div class="stat-label">Completed Topics</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-value" id="pending-tasks">8</div>
+                        <div class="stat-label">Pending Topics</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fas fa-hourglass-half"></i>
+                        </div>
+                        <div class="stat-value" id="study-hours">42</div>
+                        <div class="stat-label">Study Hours</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon danger">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="stat-value" id="streak-days">14</div>
+                        <div class="stat-label">Day Streak</div>
+                    </div>
                 </div>
+
+                <!-- Main Planner Grid -->
+                <div class="planner-grid">
+                    <!-- Left Column -->
+                    <div class="left-column">
+                        <!-- Upload & AI Section -->
+                        <div class="card mb-20">
+                            <div class="card-header">
+                                <h3>AI Study Assistant</h3>
+                                <div class="card-actions">
+                                    <button class="btn btn-sm btn-secondary" id="clear-materials-btn">
+                                        <i class="fas fa-trash"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="upload-area" id="upload-area">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag & drop your study materials here</p>
+                                    <p class="text-muted">Supports PDF, PPT, DOCX, and TXT files</p>
+                                    <button class="btn btn-outline-primary mt-10">
+                                        <i class="fas fa-folder-open"></i> Browse Files
+                                    </button>
+                                    <input type="file" id="file-input" class="file-input" accept=".pdf,.ppt,.pptx,.doc,.docx,.txt" multiple>
+                                </div>
+                                <div class="d-flex justify-content-between mt-20">
+                                    <button class="btn btn-secondary" id="quick-plan-btn">
+                                        <i class="fas fa-bolt"></i> Quick Plan
+                                    </button>
+                                    <button class="btn btn-primary" id="detailed-plan-btn">
+                                        <i class="fas fa-brain"></i> Detailed Plan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Calendar -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Study Calendar</h3>
+                                <div class="card-actions">
+                                    <button class="btn btn-sm btn-outline-primary" id="add-event-btn">
+                                        <i class="fas fa-plus"></i> Add Event
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="calendar"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="right-column">
+                        <!-- Today's Tasks -->
+                        <div class="card mb-20">
+                            <div class="card-header">
+                                <h3>Today's Study Plan</h3>
+                                <div class="card-actions">
+                                    <button class="btn btn-sm btn-outline-primary" id="add-task-btn">
+                                        <i class="fas fa-plus"></i> Add Task
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="task-list" id="today-tasks">
+                                    <!-- Task items will be added here dynamically -->
+                                    <div class="task-item">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <div class="task-content">
+                                            <div class="task-title">Pharmacokinetics Review</div>
+                                            <div class="task-meta">
+                                                <span><i class="far fa-clock"></i> 2 hrs</span>
+                                                <span class="task-priority priority-high">High</span>
+                                            </div>
+                                        </div>
+                                        <div class="task-actions">
+                                            <button class="task-btn">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="task-btn">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="task-item">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <div class="task-content">
+                                            <div class="task-title">Antibiotics Flashcards</div>
+                                            <div class="task-meta">
+                                                <span><i class="far fa-clock"></i> 1 hr</span>
+                                                <span class="task-priority priority-medium">Medium</span>
+                                            </div>
+                                        </div>
+                                        <div class="task-actions">
+                                            <button class="task-btn">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="task-btn">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="task-item completed">
+                                        <input type="checkbox" class="task-checkbox" checked>
+                                        <div class="task-content">
+                                            <div class="task-title">Read Chapter 5 - CNS Drugs</div>
+                                            <div class="task-meta">
+                                                <span><i class="far fa-clock"></i> 1.5 hrs</span>
+                                                <span class="task-priority priority-low">Low</span>
+                                            </div>
+                                        </div>
+                                        <div class="task-actions">
+                                            <button class="task-btn">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="task-btn">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Chat Assistant -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>AI Study Assistant</h3>
+                                <div class="card-actions">
+                                    <button class="btn btn-sm btn-secondary" id="clear-chat-btn">
+                                        <i class="fas fa-trash"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <div class="ai-chat-container">
+                                    <div class="chat-header">
+                                        <i class="fas fa-robot"></i>
+                                        <h3>PharmaAI Assistant</h3>
+                                    </div>
+                                    <div class="chat-messages" id="chat-messages">
+                                        <div class="message">
+                                            <div class="message-ai">
+                                                Hello! I'm your PharmaAI assistant. How can I help with your studies today?
+                                                <div class="message-time">Just now</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="chat-input">
+                                        <input type="text" placeholder="Ask me anything about pharmacology..." id="chat-input">
+                                        <button id="send-message-btn">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Plan Modal -->
+    <div class="modal" id="create-plan-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Custom Study Plan</h3>
+                <button class="modal-close" id="close-create-plan-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="plan-form">
+                    <div class="form-group">
+                        <label for="plan-name" class="form-label">Plan Name</label>
+                        <input type="text" id="plan-name" class="form-control" placeholder="e.g. Antibiotics Mastery Plan">
+                    </div>
+                    <div class="form-group">
+                        <label for="plan-goal" class="form-label">Study Goal</label>
+                        <select id="plan-goal" class="form-control">
+                            <option value="">Select a goal</option>
+                            <option value="exam-prep">Exam Preparation</option>
+                            <option value="concept-mastery">Concept Mastery</option>
+                            <option value="research">Research Project</option>
+                            <option value="certification">Certification</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="plan-topics" class="form-label">Topics to Cover</label>
+                        <select id="plan-topics" class="form-control" multiple="multiple">
+                            <option value="pharmacokinetics">Pharmacokinetics</option>
+                            <option value="pharmacodynamics">Pharmacodynamics</option>
+                            <option value="antibiotics">Antibiotics</option>
+                            <option value="cns-drugs">CNS Drugs</option>
+                            <option value="cv-drugs">Cardiovascular Drugs</option>
+                            <option value="endocrine">Endocrine Pharmacology</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="plan-duration" class="form-label">Study Duration (weeks)</label>
+                        <input type="number" id="plan-duration" class="form-control" min="1" max="12" value="4">
+                    </div>
+                    <div class="form-group">
+                        <label for="plan-intensity" class="form-label">Study Intensity</label>
+                        <select id="plan-intensity" class="form-control">
+                            <option value="light">Light (5-7 hrs/week)</option>
+                            <option value="moderate" selected>Moderate (8-12 hrs/week)</option>
+                            <option value="intense">Intense (13-20 hrs/week)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="plan-start" class="form-label">Start Date</label>
+                        <input type="date" id="plan-start" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-plan-btn">Cancel</button>
+                <button class="btn btn-primary" id="save-plan-btn">Create Plan</button>
             </div>
         </div>
     </div>
 
     <!-- AI Plan Review Modal -->
-    <div class="modal" id="ai-modal">
+    <div class="modal" id="ai-plan-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>AI-Generated Study Plan</h3>
-                <button class="modal-close" id="close-ai-modal">&times;</button>
+                <button class="modal-close" id="close-ai-plan-modal">&times;</button>
             </div>
-            <div id="ai-plan-content">
-                <!-- AI-generated content appears here -->
+            <div class="modal-body">
+                <div class="ai-plan-preview">
+                    <h4>Your Personalized Study Plan</h4>
+                    <p>Based on your materials and preferences, here's an optimized study schedule:</p>
+                    
+                    <div class="plan-section">
+                        <h4><i class="fas fa-calendar-week"></i> Plan Overview</h4>
+                        <div class="plan-item">
+                            <div class="plan-item-details">
+                                <div class="plan-item-title">Duration: 4 weeks (Moderate Intensity)</div>
+                                <div class="plan-item-meta">
+                                    <span>Total hours: 32</span>
+                                    <span>Topics: 6</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-section">
+                        <h4><i class="fas fa-tasks"></i> Weekly Breakdown</h4>
+                        <div class="plan-item">
+                            <input type="checkbox" class="plan-item-checkbox">
+                            <div class="plan-item-details">
+                                <div class="plan-item-title">Week 1: Pharmacokinetics Fundamentals</div>
+                                <div class="plan-item-meta">
+                                    <span>8 hours</span>
+                                    <span>3 topics</span>
+                                    <span>2 quizzes</span>
+                                </div>
+                            </div>
+                            <div class="plan-item-actions">
+                                <button class="task-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="plan-item">
+                            <input type="checkbox" class="plan-item-checkbox">
+                            <div class="plan-item-details">
+                                <div class="plan-item-title">Week 2: Antibiotics Classification</div>
+                                <div class="plan-item-meta">
+                                    <span>8 hours</span>
+                                    <span>4 drug classes</span>
+                                    <span>1 case study</span>
+                                </div>
+                            </div>
+                            <div class="plan-item-actions">
+                                <button class="task-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="plan-item">
+                            <input type="checkbox" class="plan-item-checkbox">
+                            <div class="plan-item-details">
+                                <div class="plan-item-title">Week 3: CNS Drugs Mechanisms</div>
+                                <div class="plan-item-meta">
+                                    <span>8 hours</span>
+                                    <span>5 drug types</span>
+                                    <span>Flashcards</span>
+                                </div>
+                            </div>
+                            <div class="plan-item-actions">
+                                <button class="task-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="plan-item">
+                            <input type="checkbox" class="plan-item-checkbox">
+                            <div class="plan-item-details">
+                                <div class="plan-item-title">Week 4: Review & Practice Exams</div>
+                                <div class="plan-item-meta">
+                                    <span>8 hours</span>
+                                    <span>2 mock exams</span>
+                                    <span>Final review</span>
+                                </div>
+                            </div>
+                            <div class="plan-item-actions">
+                                <button class="task-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-section">
+                        <h4><i class="fas fa-lightbulb"></i> AI Recommendations</h4>
+                        <div class="plan-item">
+                            <div class="plan-item-details">
+                                <div class="plan-item-title">Suggested Resources</div>
+                                <div class="plan-item-meta">
+                                    <span>3 textbooks</span>
+                                    <span>5 research papers</span>
+                                    <span>2 video series</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="plan-item">
+                            <div class="plan-item-details">
+                                <div class="plan-item-title">Optimal Study Times</div>
+                                <div class="plan-item-meta">
+                                    <span>Morning: 7-9 AM (Best for memorization)</span>
+                                    <span>Evening: 7-9 PM (Best for concept integration)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" id="edit-plan-btn">
-                    <i class="fas fa-edit"></i> Edit Plan
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="regenerate-plan-btn">
+                    <i class="fas fa-sync-alt"></i> Regenerate
                 </button>
-                <button class="btn btn-primary" id="confirm-plan-btn">
+                <button class="btn btn-primary" id="confirm-ai-plan-btn">
                     <i class="fas fa-check"></i> Add to My Planner
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Firebase & FullCalendar JS -->
+    <!-- Add Task Modal -->
+    <div class="modal" id="add-task-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Study Task</h3>
+                <button class="modal-close" id="close-task-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="task-form">
+                    <div class="form-group">
+                        <label for="task-title" class="form-label">Task Title</label>
+                        <input type="text" id="task-title" class="form-control" placeholder="e.g. Review Beta-Blockers Mechanisms">
+                    </div>
+                    <div class="form-group">
+                        <label for="task-description" class="form-label">Description</label>
+                        <textarea id="task-description" class="form-control" rows="3" placeholder="Add details about what to study..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-date" class="form-label">Date</label>
+                        <input type="date" id="task-date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="task-duration" class="form-label">Duration (hours)</label>
+                        <input type="number" id="task-duration" class="form-control" min="0.5" max="8" step="0.5" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="task-priority" class="form-label">Priority</label>
+                        <select id="task-priority" class="form-control">
+                            <option value="high">High</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-tags" class="form-label">Tags</label>
+                        <select id="task-tags" class="form-control" multiple="multiple">
+                            <option value="pharmacokinetics">Pharmacokinetics</option>
+                            <option value="antibiotics">Antibiotics</option>
+                            <option value="cns">CNS</option>
+                            <option value="cv">Cardiovascular</option>
+                            <option value="exam">Exam Prep</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-task-btn">Cancel</button>
+                <button class="btn btn-primary" id="save-task-btn">Add Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
     <script type="module">
         // Firebase Initialization
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -410,18 +1609,57 @@
         const db = getFirestore(app);
 
         // DOM Elements
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const navbar = document.getElementById('navbar');
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar');
         const userInitials = document.getElementById('user-initials');
-        const userName = document.getElementById('user-name');
         const logoutBtn = document.getElementById('logout-btn');
         const uploadArea = document.getElementById('upload-area');
         const fileInput = document.getElementById('file-input');
         const aiGenerateBtn = document.getElementById('ai-generate-btn');
-        const aiModal = document.getElementById('ai-modal');
-        const closeAiModal = document.getElementById('close-ai-modal');
-        const confirmPlanBtn = document.getElementById('confirm-plan-btn');
+        const createPlanBtn = document.getElementById('create-plan-btn');
+        const quickPlanBtn = document.getElementById('quick-plan-btn');
+        const detailedPlanBtn = document.getElementById('detailed-plan-btn');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        const addEventBtn = document.getElementById('add-event-btn');
+        const clearMaterialsBtn = document.getElementById('clear-materials-btn');
+        const clearChatBtn = document.getElementById('clear-chat-btn');
+        const sendMessageBtn = document.getElementById('send-message-btn');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+
+        // Modal Elements
+        const createPlanModal = document.getElementById('create-plan-modal');
+        const closeCreatePlanModal = document.getElementById('close-create-plan-modal');
+        const cancelPlanBtn = document.getElementById('cancel-plan-btn');
+        const savePlanBtn = document.getElementById('save-plan-btn');
+        
+        const aiPlanModal = document.getElementById('ai-plan-modal');
+        const closeAiPlanModal = document.getElementById('close-ai-plan-modal');
+        const regeneratePlanBtn = document.getElementById('regenerate-plan-btn');
+        const confirmAiPlanBtn = document.getElementById('confirm-ai-plan-btn');
+        
+        const addTaskModal = document.getElementById('add-task-modal');
+        const closeTaskModal = document.getElementById('close-task-modal');
+        const cancelTaskBtn = document.getElementById('cancel-task-btn');
+        const saveTaskBtn = document.getElementById('save-task-btn');
+
+        // Initialize Select2
+        $(document).ready(function() {
+            $('#plan-topics').select2({
+                placeholder: "Select topics to include",
+                allowClear: true
+            });
+            
+            $('#task-tags').select2({
+                placeholder: "Add tags for organization",
+                tags: true
+            });
+        });
 
         // Initialize FullCalendar
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
@@ -431,58 +1669,307 @@
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
                 editable: true,
-                events: []
+                selectable: true,
+                eventClick: function(info) {
+                    // Handle event click (e.g., view/edit event)
+                    alert('Event: ' + info.event.title);
+                },
+                events: [
+                    {
+                        title: 'Pharmacokinetics Review',
+                        start: new Date(),
+                        end: new Date(new Date().setHours(new Date().getHours() + 2)),
+                        color: '#4361ee'
+                    },
+                    {
+                        title: 'Antibiotics Flashcards',
+                        start: new Date(new Date().setDate(new Date().getDate() + 1)),
+                        end: new Date(new Date().setDate(new Date().getDate() + 1)),
+                        color: '#4cc9f0'
+                    }
+                ]
             });
             calendar.render();
         });
 
-        // File Upload Handling
-        uploadArea.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                // Simulate AI processing (in a real app, this would call an API)
-                setTimeout(() => {
-                    alert(`"${file.name}" uploaded! AI is generating a study plan...`);
-                    showAIPlan(); // Show mock AI-generated plan
-                }, 1500);
+        // Toggle Sidebar
+        toggleSidebarBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('sidebar-collapsed');
+            mainContent.classList.toggle('main-content-expanded');
+            navbar.classList.toggle('navbar-expanded');
+            
+            // Change icon based on state
+            const icon = this.querySelector('i');
+            if (sidebar.classList.contains('sidebar-collapsed')) {
+                icon.classList.remove('fa-chevron-left');
+                icon.classList.add('fa-chevron-right');
+            } else {
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-left');
             }
         });
 
+        // File Upload Handling
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                // Show loading state
+                uploadArea.innerHTML = `
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Processing ${files.length} file(s)...</p>
+                `;
+                
+                // Simulate AI processing (in a real app, this would call an API)
+                setTimeout(() => {
+                    uploadArea.innerHTML = `
+                        <i class="fas fa-check-circle" style="color: #4caf50;"></i>
+                        <p>${files.length} file(s) uploaded successfully!</p>
+                        <button class="btn btn-outline-primary mt-10" id="analyze-files-btn">
+                            <i class="fas fa-brain"></i> Analyze with AI
+                        </button>
+                    `;
+                    
+                    // Add event listener to the new button
+                    document.getElementById('analyze-files-btn').addEventListener('click', function() {
+                        showAIPlan();
+                    });
+                }, 2000);
+            }
+        }
+
+        // Clear Uploaded Materials
+        clearMaterialsBtn.addEventListener('click', function() {
+            fileInput.value = '';
+            uploadArea.innerHTML = `
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drag & drop your study materials here</p>
+                <p class="text-muted">Supports PDF, PPT, DOCX, and TXT files</p>
+                <button class="btn btn-outline-primary mt-10">
+                    <i class="fas fa-folder-open"></i> Browse Files
+                </button>
+            `;
+        });
+
+        // Plan Creation
+        createPlanBtn.addEventListener('click', function() {
+            createPlanModal.classList.add('active');
+        });
+
+        closeCreatePlanModal.addEventListener('click', function() {
+            createPlanModal.classList.remove('active');
+        });
+
+        cancelPlanBtn.addEventListener('click', function() {
+            createPlanModal.classList.remove('active');
+        });
+
+        savePlanBtn.addEventListener('click', function() {
+            // Validate form
+            const planName = document.getElementById('plan-name').value;
+            const planGoal = document.getElementById('plan-goal').value;
+            
+            if (!planName || !planGoal) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Simulate plan creation
+            alert(`"${planName}" plan created successfully!`);
+            createPlanModal.classList.remove('active');
+            
+            // Show AI-generated plan based on user inputs
+            setTimeout(() => {
+                showAIPlan();
+            }, 500);
+        });
+
         // AI Plan Generation
-        aiGenerateBtn.addEventListener('click', () => {
-            // Simulate AI plan generation
+        aiGenerateBtn.addEventListener('click', showAIPlan);
+        quickPlanBtn.addEventListener('click', function() {
+            showAIPlan('quick');
+        });
+        detailedPlanBtn.addEventListener('click', function() {
+            showAIPlan('detailed');
+        });
+
+        function showAIPlan(type = 'detailed') {
+            // Show loading state
+            const aiPlanContent = document.getElementById('ai-plan-content');
+            aiPlanContent.innerHTML = `
+                <div style="text-align: center; padding: 30px;">
+                    <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--primary);"></i>
+                    <p>AI is generating your ${type} study plan...</p>
+                </div>
+            `;
+            
+            aiPlanModal.classList.add('active');
+            
+            // Simulate AI processing
+            setTimeout(() => {
+                // Content would be dynamically generated based on user inputs and materials
+                // This is just a mockup
+                aiPlanModal.classList.remove('active');
+                aiPlanModal.classList.add('active'); // Re-trigger animation
+            }, 2000);
+        }
+
+        // AI Plan Modal Actions
+        closeAiPlanModal.addEventListener('click', function() {
+            aiPlanModal.classList.remove('active');
+        });
+
+        regeneratePlanBtn.addEventListener('click', function() {
             showAIPlan();
         });
 
-        // Show AI-Generated Plan (Mock)
-        function showAIPlan() {
-            const aiPlanContent = document.getElementById('ai-plan-content');
-            aiPlanContent.innerHTML = `
-                <h4>📚 Recommended Study Plan</h4>
-                <p>Based on your uploaded materials, here's an optimized study schedule:</p>
-                <ul>
-                    <li><strong>Day 1:</strong> Pharmacology Basics (2 hrs)</li>
-                    <li><strong>Day 2:</strong> Drug Mechanisms (1.5 hrs)</li>
-                    <li><strong>Day 3:</strong> Case Studies (2 hrs)</li>
-                </ul>
-            `;
-            aiModal.classList.add('active');
-        }
-
-        // Close AI Modal
-        closeAiModal.addEventListener('click', () => {
-            aiModal.classList.remove('active');
+        confirmAiPlanBtn.addEventListener('click', function() {
+            alert('Study plan added to your calendar!');
+            aiPlanModal.classList.remove('active');
         });
 
-        // Confirm AI Plan
-        confirmPlanBtn.addEventListener('click', () => {
-            alert("Study plan added to your calendar!");
-            aiModal.classList.remove('active');
+        // Task Management
+        addTaskBtn.addEventListener('click', function() {
+            // Set default date to today
+            document.getElementById('task-date').valueAsDate = new Date();
+            addTaskModal.classList.add('active');
+        });
+
+        closeTaskModal.addEventListener('click', function() {
+            addTaskModal.classList.remove('active');
+        });
+
+        cancelTaskBtn.addEventListener('click', function() {
+            addTaskModal.classList.remove('active');
+        });
+
+        saveTaskBtn.addEventListener('click', function() {
+            const taskTitle = document.getElementById('task-title').value;
+            if (!taskTitle) {
+                alert('Please enter a task title');
+                return;
+            }
+            
+            // In a real app, this would add to Firestore and update the UI
+            const taskList = document.getElementById('today-tasks');
+            const newTask = document.createElement('div');
+            newTask.className = 'task-item';
+            newTask.innerHTML = `
+                <input type="checkbox" class="task-checkbox">
+                <div class="task-content">
+                    <div class="task-title">${taskTitle}</div>
+                    <div class="task-meta">
+                        <span><i class="far fa-clock"></i> ${document.getElementById('task-duration').value} hrs</span>
+                        <span class="task-priority priority-${document.getElementById('task-priority').value}">
+                            ${document.getElementById('task-priority').value.charAt(0).toUpperCase() + document.getElementById('task-priority').value.slice(1)}
+                        </span>
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <button class="task-btn">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="task-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            
+            taskList.insertBefore(newTask, taskList.firstChild);
+            addTaskModal.classList.remove('active');
+            
+            // Reset form
+            document.getElementById('task-form').reset();
+        });
+
+        // Chat Functionality
+        clearChatBtn.addEventListener('click', function() {
+            chatMessages.innerHTML = `
+                <div class="message">
+                    <div class="message-ai">
+                        Chat history cleared. How can I help you with your pharmacology studies today?
+                        <div class="message-time">Just now</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message';
+            userMessage.innerHTML = `
+                <div class="message-user">
+                    ${message}
+                    <div class="message-time">Just now</div>
+                </div>
+            `;
+            chatMessages.appendChild(userMessage);
+            
+            // Clear input
+            chatInput.value = '';
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Show typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'message';
+            typingIndicator.innerHTML = `
+                <div class="message-ai">
+                    <i class="fas fa-ellipsis-h"></i>
+                    <div class="message-time">AI is typing...</div>
+                </div>
+            `;
+            chatMessages.appendChild(typingIndicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Simulate AI response after delay
+            setTimeout(() => {
+                // Remove typing indicator
+                chatMessages.removeChild(typingIndicator);
+                
+                // Add AI response
+                const aiResponse = document.createElement('div');
+                aiResponse.className = 'message';
+                
+                // Simple mock responses based on keywords
+                let responseText = "";
+                if (message.toLowerCase().includes("pharmacokinetics")) {
+                    responseText = "Pharmacokinetics refers to what the body does to a drug. It involves four main processes: absorption, distribution, metabolism, and excretion (ADME). Would you like me to explain any of these in more detail?";
+                } else if (message.toLowerCase().includes("antibiotics")) {
+                    responseText = "Antibiotics can be classified in several ways: by their mechanism of action (e.g., cell wall synthesis inhibitors like penicillins), by their spectrum (broad vs narrow), or by their chemical structure. I can help you create a study plan or flashcards for antibiotics if you'd like.";
+                } else if (message.toLowerCase().includes("help") || message.toLowerCase().includes("hi") || message.toLowerCase().includes("hello")) {
+                    responseText = "I'm here to help with your pharmacology studies! I can explain concepts, create study plans, quiz you, or help organize your materials. What would you like to focus on today?";
+                } else {
+                    responseText = "That's an interesting question about pharmacology. While I'm an AI assistant and not a substitute for professional medical advice, I can certainly help explain concepts or direct you to reliable resources. Could you clarify what specific aspect you're interested in?";
+                }
+                
+                aiResponse.innerHTML = `
+                    <div class="message-ai">
+                        ${responseText}
+                        <div class="message-time">Just now</div>
+                    </div>
+                `;
+                chatMessages.appendChild(aiResponse);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 1500);
+        }
+
+        sendMessageBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
         });
 
         // Logout
-        logoutBtn.addEventListener('click', () => {
+        logoutBtn.addEventListener('click', function() {
             signOut(auth).then(() => {
                 window.location.href = 'login.html';
             });
@@ -492,9 +1979,11 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 const displayName = user.displayName || "User";
-                const initials = displayName.charAt(0).toUpperCase();
+                const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase();
                 userInitials.textContent = initials;
-                userName.textContent = `${displayName}'s`;
+                
+                // Set profile name in navbar
+                document.querySelector('.profile-name').textContent = displayName;
             } else {
                 window.location.href = 'login.html';
             }
